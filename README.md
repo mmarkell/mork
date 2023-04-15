@@ -20,7 +20,7 @@ import { mork } from "mork";
 const inputData = {
   name: "John",
   age: 30,
-  address: string,
+  address: "123 Main St, Anytown, NY, 12345",
 };
 
 const outputSchema = {
