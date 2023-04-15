@@ -15,13 +15,14 @@ type MorkOptions<SchemaType extends TSchema> = {
     path: string;
   };
   engine?: Engine;
+  retries?: number;
 };
 
 export function mork<T extends TSchema = TSchema>(
   options: MorkOptions<T>
 ): (input: any) => Promise<Static<T>> {
   return async (input: any) => {
-    const { instructions, jsonSchema, save, engine } = options;
+    const { instructions, jsonSchema, save, engine, retries } = options;
 
     const validateAndReturn = (
       output: T,
@@ -133,7 +134,7 @@ export function mork<T extends TSchema = TSchema>(
         console.error(e);
         errorPrompt = JSON.stringify(e);
         attempt++;
-        if (attempt > 5) {
+        if (attempt > (retries && retries > 0 ? retries : 5)) {
           throw e;
         }
         continue;
