@@ -1,6 +1,7 @@
 // src/sum.spec.ts
 import fs from "fs";
 import { mork } from "../src/index";
+import { Type } from "@sinclair/typebox";
 
 describe("mork it", () => {
   it("can take instructions to write the identity mork", async () => {
@@ -13,9 +14,7 @@ describe("mork it", () => {
   it("can take a json schema to write the identity mork", async () => {
     const identityMork = mork({
       instructions: "Respond with the exact value passed in",
-      jsonSchema: {
-        type: "number",
-      },
+      jsonSchema: Type.Number(),
     });
     const output = await identityMork(3);
     expect(output).toEqual(3);
@@ -30,6 +29,7 @@ describe("mork it", () => {
     });
 
     const output = await identityMork(3);
+
     expect(output).toEqual(3);
     const code = fs.readFileSync(file, "utf8");
     expect(eval(code)(3)).toEqual(3);
@@ -43,16 +43,16 @@ describe("mork it", () => {
       address: "123 Main St, Anytown, NY, 12345",
     };
 
-    const outputSchema = {
-      name: "string",
-      age: "number",
-      address: {
-        street: "string",
-        city: "string",
-        state: "string",
-        zip: "string",
-      },
-    };
+    const outputSchema = Type.Object({
+      name: Type.String(),
+      age: Type.Number(),
+      address: Type.Object({
+        street: Type.String(),
+        city: Type.String(),
+        state: Type.String(),
+        zip: Type.String(),
+      }),
+    });
 
     const addressMork = mork({
       instructions: "split out address into street, city, state, and zip",
@@ -74,16 +74,16 @@ describe("mork it", () => {
       address: "123 Main St, Anytown, NY, 12345",
     };
 
-    const outputSchema = {
-      name: "string",
-      age: "number",
-      address: {
-        street: "string",
-        city: "string",
-        state: "string",
-        zip: "string",
-      },
-    };
+    const outputSchema = Type.Object({
+      name: Type.String(),
+      age: Type.Number(),
+      address: Type.Object({
+        street: Type.String(),
+        city: Type.String(),
+        state: Type.String(),
+        zip: Type.String(),
+      }),
+    });
 
     const addressMork = mork({
       jsonSchema: outputSchema,
@@ -132,21 +132,9 @@ describe("mork it", () => {
       },
     });
 
-    expect(
-      await gameOfLifeMork(
-        `
-            ........
-            ....*...
-            ...**...
-            ........
-      `
-      )
-    ).toEqual(`
-            ........
-            ...**...
-            ...**...
-            ........
-      `);
+    expect(await gameOfLifeMork(`........|....*...|...**...|........`)).toEqual(
+      `........|...**...|...**...|........`
+    );
 
     expect(
       await gameOfLifeMork([

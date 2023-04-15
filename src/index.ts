@@ -1,9 +1,14 @@
 require("dotenv").config();
+import { Static, TSchema } from "@sinclair/typebox";
+import Ajv from "ajv";
 import fs from "fs";
 import { Engine } from "./engine/AbstractEngine";
 import OpenAiClient from "./engine/OpenAiClient";
+const ajv = new Ajv({
+  allErrors: true,
+}); // options can be passed, e.g. {allErrors: true}
 
-type MorkOptions<SchemaType> = {
+type MorkOptions<SchemaType extends TSchema> = {
   instructions?: string;
   jsonSchema?: SchemaType;
   save?: {
@@ -12,11 +17,37 @@ type MorkOptions<SchemaType> = {
   engine?: Engine;
 };
 
-export function mork<T = any>(
+export function mork<T extends TSchema = TSchema>(
   options: MorkOptions<T>
-): (args: any) => Promise<T> {
+): (input: any) => Promise<Static<T>> {
   return async (input: any) => {
     const { instructions, jsonSchema, save, engine } = options;
+
+    const validateAndReturn = (
+      output: T,
+      save?: {
+        path: string;
+        code: string;
+      }
+    ) => {
+      if (!jsonSchema) {
+        return output as any;
+      }
+
+      const validate = ajv.compile(jsonSchema);
+
+      const isValid = validate(output);
+      if (isValid) {
+        if (save?.path) {
+          require("fs").writeFileSync(save!.path, save!.code);
+        }
+        return output as Static<T>;
+      } else {
+        throw new Error(
+          `Output did not match JSON schema: ${JSON.stringify(validate.errors)}`
+        );
+      }
+    };
 
     const shouldExport = Boolean(save?.path);
     // If the file already exists, then try to use it
@@ -26,7 +57,7 @@ export function mork<T = any>(
         const code = fs.readFileSync(save!.path, "utf8");
         try {
           const output = eval(code)(input);
-          return output as T;
+          return validateAndReturn(output);
         } catch (e) {
           console.error("failed reading cached code from disk", e);
         }
@@ -91,10 +122,13 @@ export function mork<T = any>(
       try {
         const output = eval(code)(input);
         if (shouldExport) {
-          require("fs").writeFileSync(save!.path, code);
+          return validateAndReturn(output, {
+            path: save!.path,
+            code,
+          });
+        } else {
+          return validateAndReturn(output);
         }
-
-        return output as T;
       } catch (e) {
         console.error(e);
         errorPrompt = JSON.stringify(e);
