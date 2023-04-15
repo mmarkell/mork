@@ -20,7 +20,7 @@ import { mork } from "mork";
 const inputData = {
   name: "John",
   age: 30,
-  address: string,
+  address: "123 Main St, Anytown, NY, 12345",
 };
 
 const outputSchema = {
@@ -98,7 +98,7 @@ const outputSchema = {
 const outputData = await mork(inputData, {
   instructions: "split out address into street, city, state, zip",
   engine: {
-    prompt: (input): myEngine.infer(input)
+    prompt: (input) => myEngine.infer(input)
   },
   jsonSchema: outputSchema
 });
