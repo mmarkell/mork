@@ -64,6 +64,9 @@ export async function mork<T = undefined, I = any>(
 
         (input) => doSomething(input)
         
+        Ok, here is the input!
+        ______________________
+
         Input Data: ${JSON.stringify(input)}
         Input type: ${typeof input}
         Instructions:
@@ -89,7 +92,6 @@ export async function mork<T = undefined, I = any>(
       ? await engine.prompt(prompt)
       : await OpenAiClient.prompt(prompt);
 
-    console.log({ code });
     try {
       const output = eval(code)(input);
       if (shouldExport) {
