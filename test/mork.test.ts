@@ -3,32 +3,33 @@ import fs from "fs";
 import { mork } from "../src/index";
 
 describe("mork it", () => {
-  it("returns the identity mork", async () => {
-    expect(await mork(1 + 2)).toEqual(3);
-  });
   it("can take instructions to write the identity mork", async () => {
-    const output = await mork(1 + 2, {
+    const identityMork = mork({
       instructions: "Respond with the exact value passed in",
     });
+    const output = await identityMork(3);
     expect(output).toEqual(3);
   });
   it("can take a json schema to write the identity mork", async () => {
-    const output = await mork(1 + 2, {
+    const identityMork = mork({
       instructions: "Respond with the exact value passed in",
       jsonSchema: {
         type: "number",
       },
     });
+    const output = await identityMork(3);
     expect(output).toEqual(3);
   });
   it("can write the mork to a file", async () => {
     const file = require("path").join(__dirname, "mork_output.js");
-    const output = await mork(1 + 2, {
+    const identityMork = mork({
       instructions: "Respond with the exact value passed in",
       save: {
         path: file,
       },
     });
+
+    const output = await identityMork(3);
     expect(output).toEqual(3);
     const code = fs.readFileSync(file, "utf8");
     expect(eval(code)(3)).toEqual(3);
@@ -53,10 +54,12 @@ describe("mork it", () => {
       },
     };
 
-    const outputData = await mork(inputData, {
+    const addressMork = mork({
       instructions: "split out address into street, city, state, and zip",
       jsonSchema: outputSchema,
     });
+
+    const outputData = await addressMork(inputData);
 
     expect(outputData.address.city).toEqual("Anytown");
     expect(outputData.address.state).toEqual("NY");
@@ -82,9 +85,11 @@ describe("mork it", () => {
       },
     };
 
-    const outputData = await mork<typeof outputSchema>(inputData, {
+    const addressMork = mork({
       jsonSchema: outputSchema,
     });
+
+    const outputData = await addressMork(inputData);
 
     expect(outputData.address.city).toEqual("Anytown");
     expect(outputData.address.state).toEqual("NY");
@@ -97,25 +102,64 @@ describe("mork it", () => {
       prompt: () => Promise.resolve("(mork) => mork"),
     };
 
-    const output = await mork(1 + 2, {
+    const customMork = mork({
       instructions: "do whatever you want idc",
       engine: ourEngine,
     });
 
+    const output = await customMork(3);
     expect(output).toEqual(3);
   });
 
   it("can do math and stuff", async () => {
-    const primes = await Promise.all(
-      [1, 2, 3, 4, 5].map((num) =>
-        mork(num, {
-          instructions: "return the nth prime number given the input n",
-          save: {
-            path: require("path").join(__dirname, "primes.js"),
-          },
-        })
-      )
-    );
+    const primeMork = mork({
+      instructions: "return the nth prime number given the input n",
+      save: {
+        path: require("path").join(__dirname, "primes.js"),
+      },
+    });
+
+    const primes = await Promise.all([1, 2, 3, 4, 5].map(primeMork));
     expect(primes).toEqual([2, 3, 5, 7, 11]);
+  });
+
+  it("can write conway's game of life", async () => {
+    const gameOfLifeMork = mork({
+      instructions:
+        "write a function that takes a conway's game of life board and returns the next board",
+      save: {
+        path: require("path").join(__dirname, "game_of_life.js"),
+      },
+    });
+
+    expect(
+      await gameOfLifeMork(
+        `
+            ........
+            ....*...
+            ...**...
+            ........
+      `
+      )
+    ).toEqual(`
+            ........
+            ...**...
+            ...**...
+            ........
+      `);
+
+    expect(
+      await gameOfLifeMork([
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      ])
+    ).toEqual([
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ]);
   });
 });
