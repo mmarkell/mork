@@ -98,7 +98,7 @@ const outputSchema = {
 const outputData = await mork(inputData, {
   instructions: "split out address into street, city, state, zip",
   engine: {
-    prompt: (input): myEngine.infer(input)
+    prompt: (input) => myEngine.infer(input)
   },
   jsonSchema: outputSchema
 });
