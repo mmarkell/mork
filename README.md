@@ -16,6 +16,8 @@ OPEN_AI_API_KEY=...
 
 ```typescript
 import { mork } from 'mork';
+import { Type } from "@sinclair/typebox";
+
 const inputData = {
   name: "John",
   age: 30,
@@ -74,6 +76,7 @@ The base morker uses GPT-4 to generate instructions, but you can use any engine 
 
 ```typescript
 import { mork } from "mork";
+import { Type } from "@sinclair/typebox";
 import { myEngine } from "./myEngine";
 
 const inputData = {
