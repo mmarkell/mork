@@ -1,6 +1,6 @@
 # mork
 
-Sometimes you have data and need to do something with it, but you don't know what that something is yet. When in doubt, mork it.
+Sometimes you have data and need to do something with it, but you don't know what that something is yet. When in doubt, Mork It!<sup>TM</sup>
 
 ## What's a mork?
 
