@@ -12,14 +12,10 @@ type MorkOptions<SchemaType> = {
   engine?: Engine;
 };
 
-export function mork<T = undefined>(
+export function mork<T = any>(
   options: MorkOptions<T>
-): (args: any) => Promise<T extends undefined ? any : T> {
+): (args: any) => Promise<T> {
   return async (input: any) => {
-    if (!options) {
-      return input as T extends undefined ? any : T;
-    }
-
     const { instructions, jsonSchema, save, engine } = options;
 
     const shouldExport = Boolean(save?.path);
@@ -30,7 +26,7 @@ export function mork<T = undefined>(
         const code = fs.readFileSync(save!.path, "utf8");
         try {
           const output = eval(code)(input);
-          return output as T extends undefined ? any : T;
+          return output as T;
         } catch (e) {
           console.error("failed reading cached code from disk", e);
         }
@@ -98,7 +94,7 @@ export function mork<T = undefined>(
           require("fs").writeFileSync(save!.path, code);
         }
 
-        return output as T extends undefined ? any : T;
+        return output as T;
       } catch (e) {
         console.error(e);
         errorPrompt = JSON.stringify(e);
