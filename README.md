@@ -15,43 +15,41 @@ OPEN_AI_API_KEY=...
 ```
 
 ```typescript
-import { mork } from "mork";
-
+import { mork } from 'mork';
 const inputData = {
   name: "John",
   age: 30,
   address: "123 Main St, Anytown, NY, 12345",
 };
 
-const outputSchema = {
-  name: "string",
-  age: "number",
-  address: {
-    street: "string",
-    city: "string",
-    state: "string",
-    zip: "string",
-  },
-};
-
-const outputData = await mork(inputData, {
-  jsonSchema: outputSchema,
-  save: {
-    path: "split_address.js", // saves the generated code that was used to generate the output
-  },
+const outputSchema = Type.Object({
+  name: Type.String(),
+  age: Type.Number(),
+  address: Type.Object({
+    street: Type.String(),
+    city: Type.String(),
+    state: Type.String(),
+    zip: Type.String(),
+  }),
 });
 
-console.log(outputData);
+const addressMork = mork({
+  instructions: "split out address into street, city, state, and zip",
+  jsonSchema: outputSchema,
+});
+
+const outputData = await addressMork(inputData);
 // {
-//   name: "John",
-//   age: 30,
-//   address: {
-//     street: "123 Main St",
-//     city: "Anytown",
-//     state: "CA",
-//     zip: "12345",
-//   },
+//    name: "John",
+//    age: 30,
+//    address: {
+//      street: "123 Main St",
+//      city: "Anytown",
+//      state: "NY",
+//      zip: 12345
+//    }
 // }
+
 ```
 
 ## Or do some math
@@ -84,16 +82,16 @@ const inputData = {
   address: "123 Main St, Anytown, NY, 12345",
 };
 
-const outputSchema = {
-  name: "string",
-  age: "number",
-  address: {
-    street: "string",
-    city: "string",
-    state: "string",
-    zip: "string",
-  },
-};
+const outputSchema = Type.Object({
+  name: Type.String(),
+  age: Type.Number(),
+  address: Type.Object({
+    street: Type.String(),
+    city: Type.String(),
+    state: Type.String(),
+    zip: Type.String(),
+  }),
+});
 
 const outputData = await mork(inputData, {
   instructions: "split out address into street, city, state, zip",
