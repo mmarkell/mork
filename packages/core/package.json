@@ -2,11 +2,12 @@
   "name": "@mork/core",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "types": "dist/src/index.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "rollup": "rollup -c"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,7 @@
   },
   "homepage": "https://github.com/mmarkell/mork#readme",
   "devDependencies": {
+    "@rollup/plugin-typescript": "^11.1.0",
     "@types/jest": "^29.5.0",
     "@types/node-fetch": "^2.6.3",
     "jest": "^29.5.0",

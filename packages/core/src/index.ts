@@ -1,7 +1,5 @@
-require("dotenv").config();
 import { Static, TSchema } from "@sinclair/typebox";
 import Ajv from "ajv";
-import fs from "fs";
 import { Engine } from "./engine/AbstractEngine";
 import OpenAiClient from "./engine/OpenAiClient";
 const ajv = new Ajv({
@@ -12,9 +10,6 @@ type MorkOptions<SchemaType extends TSchema> = {
   instructions?: string;
   jsonSchema?: SchemaType;
   asserts?: ((input: any, output: Static<SchemaType>) => boolean)[];
-  save?: {
-    path: string;
-  };
   engine?: Engine;
   retries?: number;
 };
@@ -22,27 +17,13 @@ type MorkOptions<SchemaType extends TSchema> = {
 export function mork<T extends TSchema = TSchema>(
   options: MorkOptions<T>
 ): (input: any) => Promise<Static<T>> {
+  let cachedCode: string;
   return async (input: any) => {
-    const { instructions, jsonSchema, save, engine, retries, asserts } =
-      options;
+    const { instructions, jsonSchema, engine, retries, asserts } = options;
     const previousInputs: any[] = [];
-    const validateAndReturn = (
-      output: T,
-      save?: {
-        path: string;
-        code: string;
-      }
-    ) => {
-      // if we should, save the code to the path
-      const savePath = () => {
-        if (save?.path) {
-          console.log({ save });
-          require("fs").writeFileSync(save!.path, save!.code);
-        }
-      };
-
+    const validateAndReturn = (output: T, code: string) => {
       if (!jsonSchema) {
-        savePath();
+        cachedCode = code;
         return output as any;
       }
 
@@ -50,7 +31,7 @@ export function mork<T extends TSchema = TSchema>(
 
       const isValid = validate(output);
       if (isValid) {
-        savePath();
+        cachedCode = code;
         previousInputs.push(input);
         return output as Static<T>;
       } else {
@@ -79,21 +60,13 @@ export function mork<T extends TSchema = TSchema>(
       return output;
     };
 
-    const shouldExport = Boolean(save?.path);
     // If the file already exists, then try to use it
-    if (shouldExport) {
-      const exists = fs.existsSync(save!.path);
-      if (exists) {
-        const code = fs.readFileSync(save!.path, "utf8");
-        try {
-          const output = evaluate(code, input);
-          return validateAndReturn(output, {
-            path: save!.path,
-            code,
-          });
-        } catch (e) {
-          console.error("failed reading cached code from disk", e);
-        }
+    if (cachedCode) {
+      try {
+        const output = evaluate(cachedCode, input);
+        return validateAndReturn(output, cachedCode);
+      } catch (e) {
+        console.error("failed reading cached code from disk", e);
       }
     }
 
@@ -172,14 +145,7 @@ export function mork<T extends TSchema = TSchema>(
         }
 
         const output = evaluate(code, input);
-        if (shouldExport) {
-          return validateAndReturn(output, {
-            path: save!.path,
-            code,
-          });
-        } else {
-          return validateAndReturn(output);
-        }
+        return validateAndReturn(output, code);
       } catch (e) {
         console.error(e);
         errorPrompt = JSON.stringify(e);

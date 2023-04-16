@@ -2,6 +2,20 @@
 
 Sometimes you have data and need to do something with it, but you don't know what that something is yet. When in doubt, Mork It!<sup>TM</sup>
 
+## Building
+
+Build for node
+
+```
+npm run build
+```
+
+Build for web
+
+```
+npm run rollup
+```
+
 ## What's a mork?
 
 Using LLMs, we can determine how to take your data from its input type (can be an arbitrary structure) and turn it into whatever schema you ask, either automatically or using custom instructions.

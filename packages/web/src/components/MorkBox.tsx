@@ -9,13 +9,19 @@ export const MorkBox = () => {
 
   const morkRef = React.useRef<ReturnType<typeof mork>>(null);
   useEffect(() => {
+    let schema;
+    try {
+      schema = JSON.parse(jsonSchema);
+    } catch (e) {
+      schema = undefined;
+    }
     morkRef.current = mork({
       instructions,
-      jsonSchema: JSON.parse(jsonSchema),
+      jsonSchema: schema,
     });
   }, [instructions, jsonSchema]);
   const handleRunClick = () => {
-    morkRef.current(JSON.parse(inputData)).then((result) => {
+    morkRef.current(inputData).then((result) => {
       setOutput(result as unknown as any);
     });
   };

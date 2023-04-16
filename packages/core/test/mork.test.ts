@@ -1,5 +1,4 @@
-// src/sum.spec.ts
-import fs from "fs";
+// test/mork.test.ts
 import { mork } from "../src/index";
 import { Type } from "@sinclair/typebox";
 
@@ -18,22 +17,6 @@ describe("mork it", () => {
     });
     const output = await identityMork(3);
     expect(output).toEqual(3);
-  });
-  it("can write the mork to a file", async () => {
-    const file = require("path").join(__dirname, "mork_output.js");
-    const identityMork = mork({
-      instructions: "Respond with the exact value passed in",
-      save: {
-        path: file,
-      },
-    });
-
-    const output = await identityMork(3);
-
-    expect(output).toEqual(3);
-    const code = fs.readFileSync(file, "utf8");
-    expect(eval(code)(3)).toEqual(3);
-    fs.rmSync(file);
   });
 
   it("can do more complex things", async () => {
@@ -114,9 +97,6 @@ describe("mork it", () => {
   it("can do math and stuff", async () => {
     const primeMork = mork({
       instructions: "return the nth prime number given the input n",
-      save: {
-        path: require("path").join(__dirname, "primes.js"),
-      },
       asserts: [
         (input, output) => {
           // oracle
@@ -162,9 +142,6 @@ describe("mork it", () => {
     const gameOfLifeMork = mork({
       instructions:
         "write a function that takes a conway's game of life board and returns the next board",
-      save: {
-        path: require("path").join(__dirname, "game_of_life.js"),
-      },
     });
 
     expect(
