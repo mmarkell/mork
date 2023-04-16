@@ -11,6 +11,7 @@ const ajv = new Ajv({
 type MorkOptions<SchemaType extends TSchema> = {
   instructions?: string;
   jsonSchema?: SchemaType;
+  asserts?: ((input: any, output: Static<SchemaType>) => boolean)[];
   save?: {
     path: string;
   };
@@ -22,7 +23,8 @@ export function mork<T extends TSchema = TSchema>(
   options: MorkOptions<T>
 ): (input: any) => Promise<Static<T>> {
   return async (input: any) => {
-    const { instructions, jsonSchema, save, engine, retries } = options;
+    const { instructions, jsonSchema, save, engine, retries, asserts } =
+      options;
     const previousInputs: any[] = [];
     const validateAndReturn = (
       output: T,
@@ -58,6 +60,22 @@ export function mork<T extends TSchema = TSchema>(
       }
     };
 
+    const evaluate = (code: string, input: any) => {
+      const output = eval(code)(input);
+      if (asserts) {
+        for (const assert of asserts) {
+          try {
+            assert(input, output);
+          } catch (e) {
+            throw new Error(
+              `The code you generated did not pass the assertion: ${e}`
+            );
+          }
+        }
+      }
+      return output;
+    };
+
     const shouldExport = Boolean(save?.path);
     // If the file already exists, then try to use it
     if (shouldExport) {
@@ -65,7 +83,7 @@ export function mork<T extends TSchema = TSchema>(
       if (exists) {
         const code = fs.readFileSync(save!.path, "utf8");
         try {
-          const output = eval(code)(input);
+          const output = evaluate(code, input);
           return validateAndReturn(output, {
             path: save!.path,
             code,
@@ -136,14 +154,11 @@ export function mork<T extends TSchema = TSchema>(
         ? await engine.prompt(prompt)
         : await OpenAiClient.prompt(prompt);
 
-      console.log(
-        require("util").inspect({ code }, { showHidden: false, depth: null })
-      );
       try {
         // try on previous inputs just to make sure it works
         for (const previousInput of previousInputs) {
           try {
-            eval(code)(previousInput);
+            evaluate(code, previousInput);
           } catch (e) {
             throw new Error(
               `The code you generated did not work on previous input: ${JSON.stringify(
@@ -153,7 +168,7 @@ export function mork<T extends TSchema = TSchema>(
           }
         }
 
-        const output = eval(code)(input);
+        const output = evaluate(code, input);
         if (shouldExport) {
           return validateAndReturn(output, {
             path: save!.path,
