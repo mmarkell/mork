@@ -73,32 +73,15 @@ expect(primes).toEqual([2, 3, 5, 7, 11]);
 The base morker uses GPT-4 to generate instructions, but you can use any engine you want. Just pass it in as the `engine` option.
 
 ```typescript
-import { mork } from "mork";
-import { Type } from "@sinclair/typebox";
-import { myEngine } from "./myEngine";
-
-const inputData = {
-  name: "John",
-  age: 30,
-  address: "123 Main St, Anytown, NY, 12345",
+const ourEngine = {
+  prompt: () => Promise.resolve("(mork) => mork"),
 };
 
-const outputSchema = Type.Object({
-  name: Type.String(),
-  age: Type.Number(),
-  address: Type.Object({
-    street: Type.String(),
-    city: Type.String(),
-    state: Type.String(),
-    zip: Type.String(),
-  }),
+const customMork = mork({
+  instructions: "do whatever you want idc",
+  engine: ourEngine,
 });
 
-const outputData = await mork(inputData, {
-  instructions: "split out address into street, city, state, zip",
-  engine: {
-    prompt: (input) => myEngine.infer(input),
-  },
-  jsonSchema: outputSchema,
-});
+const output = await customMork(3);
+expect(output).toEqual(3);
 ```
