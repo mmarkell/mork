@@ -132,9 +132,9 @@ describe("mork it", () => {
       },
     });
 
-    expect(await gameOfLifeMork(`........|....*...|...**...|........`)).toEqual(
-      `........|...**...|...**...|........`
-    );
+    expect(
+      await gameOfLifeMork(`........|....*....|.....*....|..........`)
+    ).toEqual(`..........|..........|....**....|..........`);
 
     expect(
       await gameOfLifeMork([
