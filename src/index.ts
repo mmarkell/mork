@@ -65,7 +65,10 @@ export function mork<T extends TSchema = TSchema>(
       if (asserts) {
         for (const assert of asserts) {
           try {
-            assert(input, output);
+            const successful = assert(input, output);
+            if (!successful) {
+              throw new Error(`input ${input} and output ${output}`);
+            }
           } catch (e) {
             throw new Error(
               `The code you generated did not pass the assertion: ${e}`
