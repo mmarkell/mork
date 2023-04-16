@@ -23,7 +23,7 @@ export function mork<T extends TSchema = TSchema>(
 ): (input: any) => Promise<Static<T>> {
   return async (input: any) => {
     const { instructions, jsonSchema, save, engine, retries } = options;
-
+    const previousInputs: any[] = [];
     const validateAndReturn = (
       output: T,
       save?: {
@@ -31,7 +31,16 @@ export function mork<T extends TSchema = TSchema>(
         code: string;
       }
     ) => {
+      // if we should, save the code to the path
+      const savePath = () => {
+        if (save?.path) {
+          console.log({ save });
+          require("fs").writeFileSync(save!.path, save!.code);
+        }
+      };
+
       if (!jsonSchema) {
+        savePath();
         return output as any;
       }
 
@@ -39,9 +48,8 @@ export function mork<T extends TSchema = TSchema>(
 
       const isValid = validate(output);
       if (isValid) {
-        if (save?.path) {
-          require("fs").writeFileSync(save!.path, save!.code);
-        }
+        savePath();
+        previousInputs.push(input);
         return output as Static<T>;
       } else {
         throw new Error(
@@ -58,7 +66,10 @@ export function mork<T extends TSchema = TSchema>(
         const code = fs.readFileSync(save!.path, "utf8");
         try {
           const output = eval(code)(input);
-          return validateAndReturn(output);
+          return validateAndReturn(output, {
+            path: save!.path,
+            code,
+          });
         } catch (e) {
           console.error("failed reading cached code from disk", e);
         }
@@ -73,12 +84,16 @@ export function mork<T extends TSchema = TSchema>(
       let prompt = `
           You will be given input in the following format:
           Input Data: <data>
+          Previous Inputs: <data>
           Input type: <type>
           Instructions: <instructions>
           Output Schema?: <schema>
   
           Given an input, write a javascript arrow function that takes in the input data format,
           does some transformation to the input, and returns some data. 
+
+          You will also be given previous inputs to the function. All previous inputs
+          MUST also be valid inputs to the function you generate.
           
           If instructions are not provided, try to infer reasonable instructions given the schema.
   
@@ -97,6 +112,7 @@ export function mork<T extends TSchema = TSchema>(
   
           Input Data: ${JSON.stringify(input)}
           Input type: ${typeof input}
+          Previous Inputs: ${JSON.stringify(previousInputs)}
           Instructions:
             ${instructions}
             ${
@@ -120,7 +136,23 @@ export function mork<T extends TSchema = TSchema>(
         ? await engine.prompt(prompt)
         : await OpenAiClient.prompt(prompt);
 
+      console.log(
+        require("util").inspect({ code }, { showHidden: false, depth: null })
+      );
       try {
+        // try on previous inputs just to make sure it works
+        for (const previousInput of previousInputs) {
+          try {
+            eval(code)(previousInput);
+          } catch (e) {
+            throw new Error(
+              `The code you generated did not work on previous input: ${JSON.stringify(
+                previousInput
+              )}`
+            );
+          }
+        }
+
         const output = eval(code)(input);
         if (shouldExport) {
           return validateAndReturn(output, {
