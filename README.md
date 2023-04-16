@@ -15,7 +15,7 @@ OPEN_AI_API_KEY=...
 ```
 
 ```typescript
-import { mork } from 'mork';
+import { mork } from "mork";
 import { Type } from "@sinclair/typebox";
 
 const inputData = {
@@ -51,22 +51,20 @@ const outputData = await addressMork(inputData);
 //      zip: 12345
 //    }
 // }
-
 ```
 
 ## Or do some math
 
 ```typescript
-const primes = await Promise.all(
-  [1, 2, 3, 4, 5].map((num) =>
-    mork(num, {
-      instructions: "return the nth prime number given the input n",
-      save: {
-        path: require("path").join(__dirname, "primes.js"),
-      },
-    })
-  )
-);
+const primeMork = mork({
+  instructions: "return the nth prime number given the input n",
+  save: {
+    path: require("path").join(__dirname, "primes.js"),
+  },
+});
+
+const primes = await Promise.all([1, 2, 3, 4, 5].map(primeMork));
+expect(primes).toEqual([2, 3, 5, 7, 11]);
 // [2, 3, 5, 7, 11]
 ```
 
@@ -99,8 +97,8 @@ const outputSchema = Type.Object({
 const outputData = await mork(inputData, {
   instructions: "split out address into street, city, state, zip",
   engine: {
-    prompt: (input) => myEngine.infer(input)
+    prompt: (input) => myEngine.infer(input),
   },
-  jsonSchema: outputSchema
+  jsonSchema: outputSchema,
 });
 ```
