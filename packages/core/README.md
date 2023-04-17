@@ -22,12 +22,6 @@ Using LLMs, we can determine how to take your data from its input type (can be a
 
 Examples:
 
-.env file
-
-```.env
-OPEN_AI_API_KEY=...
-```
-
 ```typescript
 import { mork } from "mork";
 import { Type } from "@sinclair/typebox";

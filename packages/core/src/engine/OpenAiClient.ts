@@ -1,8 +1,8 @@
 import fetch from "node-fetch";
 import { Engine } from "./AbstractEngine";
-class OpenAiClient implements Engine {
-  constructor() {
-    if (!process.env.OPEN_AI_API_KEY) {
+export class OpenAiClient implements Engine {
+  constructor(private apiKey: string) {
+    if (!apiKey) {
       throw new Error("No OpenAI key");
     }
   }
@@ -12,7 +12,7 @@ class OpenAiClient implements Engine {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPEN_AI_API_KEY}`,
+        Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
@@ -25,5 +25,3 @@ class OpenAiClient implements Engine {
     return data.choices[0].message.content;
   }
 }
-
-export default new OpenAiClient();

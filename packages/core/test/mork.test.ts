@@ -1,6 +1,10 @@
 // test/mork.test.ts
-import { mork } from "../src/index";
+import { initMork } from "../src/index";
 import { Type } from "@sinclair/typebox";
+
+const { mork } = initMork({
+  openAiApiKey: process.env.OPEN_AI_API_KEY ?? "",
+});
 
 describe("mork it", () => {
   it("can take instructions to write the identity mork", async () => {
