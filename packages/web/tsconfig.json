@@ -15,7 +15,8 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@mork/core": ["../core/dist"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
