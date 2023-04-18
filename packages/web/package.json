@@ -11,7 +11,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.10",
     "@heroicons/react": "^2.0.15",
-    "@mork/core": "file:../core",
+    "@mork/core": "*",
     "@next/font": "13.1.6",
     "eslint": "8.32.0",
     "eslint-config-next": "13.1.6",

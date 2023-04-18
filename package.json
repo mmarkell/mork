@@ -1,22 +1,10 @@
 {
-  "name": "mork-mono",
-  "version": "1.0.0",
-  "description": "Monorepo",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "mork",
+  "packageManager": "yarn@3.5.0",
+  "dependencies": {
+    "lerna": "^3.22.1"
   },
   "workspaces": [
     "packages/*"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mmarkell/mork.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/mmarkell/mork/issues"
-  },
-  "homepage": "https://github.com/mmarkell/mork#readme"
+  ]
 }
